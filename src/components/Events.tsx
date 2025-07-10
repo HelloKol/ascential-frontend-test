@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   SimpleGrid,
   Flex,
@@ -12,6 +12,7 @@ import {
   Image,
   LinkBox,
   LinkOverlay,
+  Input,
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 import Breadcrumbs from "./Breadcrumbs";
@@ -42,8 +43,19 @@ interface EventItemProps {
 }
 
 const Events: React.FC = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [eventType, setEventType] = useState("concert");
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+
+  // debounce search query to avoid too many requests
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedSearch(searchQuery), 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
   const { data, error } = useSeatGeek("/events", {
-    type: "concert",
+    type: eventType,
+    q: debouncedSearch,
     sort: "score.desc",
     per_page: "24",
   });
@@ -61,11 +73,29 @@ const Events: React.FC = () => {
   return (
     <>
       <Breadcrumbs items={[{ label: "Home", to: "/" }, { label: "Events" }]} />
-      <SimpleGrid spacing="6" m="6" minChildWidth="350px">
-        {data.events?.map((event: EventProps) => (
-          <EventItem key={event.id.toString()} event={event} />
-        ))}
-      </SimpleGrid>
+
+      <Flex gap={4} px={6} mt={4} flexWrap="wrap">
+        <Input
+          placeholder="Search for events..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          width="300px"
+        />
+      </Flex>
+
+      {data.events.length === 0 ? (
+        <Flex justifyContent="center" alignItems="center" margin="50px 0 0 0">
+          <Text fontSize="xl" color="gray.600">
+            No data found
+          </Text>
+        </Flex>
+      ) : (
+        <SimpleGrid spacing="6" m="6" minChildWidth="350px">
+          {data.events?.map((event: EventProps) => (
+            <EventItem key={event.id.toString()} event={event} />
+          ))}
+        </SimpleGrid>
+      )}
     </>
   );
 };
