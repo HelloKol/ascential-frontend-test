@@ -1,5 +1,5 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
+import React from "react";
+import { useParams } from "react-router-dom";
 import {
   Flex,
   Heading,
@@ -11,24 +11,27 @@ import {
   Box,
   Spinner,
   AspectRatio,
-} from '@chakra-ui/react';
-import Breadcrumbs from './Breadcrumbs';
-import Error from './Error';
-import { useSeatGeek } from '../utils/useSeatGeek';
+} from "@chakra-ui/react";
+import Breadcrumbs from "./Breadcrumbs";
+import Error from "./Error";
+import { useSeatGeek } from "../utils/useSeatGeek";
+import FavoriteButton from "./FavoriteButton";
 
 interface StatsProps {
   venue: {
+    id: number;
+    name_v2: string;
     city: string;
     country: string;
     capacity: number;
-  }
+  };
 }
 
 interface MapProps {
   location: {
     lat: number;
     lon: number;
-  }
+  };
 }
 
 const Venue: React.FC = () => {
@@ -42,17 +45,17 @@ const Venue: React.FC = () => {
       <Flex justifyContent="center" alignItems="center" minHeight="50vh">
         <Spinner size="lg" />
       </Flex>
-    )
+    );
   }
 
   return (
     <>
       <Breadcrumbs
         items={[
-          { label: 'Home', to: '/' },
-          { label: 'Venues', to: '/venues' },
+          { label: "Home", to: "/" },
+          { label: "Venues", to: "/venues" },
           { label: venue.name },
-        ]} 
+        ]}
       />
       <Flex bgColor="gray.200" p={[4, 6]}>
         <Heading>{venue.name}</Heading>
@@ -64,12 +67,12 @@ const Venue: React.FC = () => {
 };
 
 const Stats: React.FC<StatsProps> = ({ venue }) => (
-  <SimpleGrid 
-    columns={[1, 1, 2]} 
-    borderWidth="1px" 
-    borderRadius="md" 
-    m="6" 
-    p="4" 
+  <SimpleGrid
+    columns={[1, 1, 2]}
+    borderWidth="1px"
+    borderRadius="md"
+    m="6"
+    p="4"
   >
     <Stat>
       <StatLabel display="flex">
@@ -77,6 +80,7 @@ const Stats: React.FC<StatsProps> = ({ venue }) => (
       </StatLabel>
       <StatNumber fontSize="xl">{venue.city}</StatNumber>
       <StatHelpText>{venue.country}</StatHelpText>
+      <FavoriteButton id={venue.id} name={venue.name_v2} type="venues" />
     </Stat>
     {venue.capacity > 0 && (
       <Stat>
