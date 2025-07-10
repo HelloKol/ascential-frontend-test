@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   SimpleGrid,
   Flex,
@@ -11,13 +11,14 @@ import {
   Stack,
   Image,
   LinkBox,
-  LinkOverlay 
-} from '@chakra-ui/react';
-import { Link } from 'react-router-dom';
-import Breadcrumbs from './Breadcrumbs';
-import Error from './Error';
-import { useSeatGeek } from '../utils/useSeatGeek';
-import { formatDateTime } from '../utils/formatDateTime';
+  LinkOverlay,
+} from "@chakra-ui/react";
+import { Link } from "react-router-dom";
+import Breadcrumbs from "./Breadcrumbs";
+import Error from "./Error";
+import FavoriteButton from "./FavoriteButton";
+import { useSeatGeek } from "../utils/useSeatGeek";
+import { formatDateTime } from "../utils/formatDateTime";
 
 export interface Performers {
   image: string;
@@ -29,7 +30,7 @@ export interface Venue {
 }
 
 export interface EventProps {
-  id: string;
+  id: number;
   short_title: string;
   datetime_utc: Date;
   performers: Performers[];
@@ -41,10 +42,10 @@ interface EventItemProps {
 }
 
 const Events: React.FC = () => {
-  const { data, error } = useSeatGeek('/events', { 
-    type: 'concert',
-    sort: 'score.desc',
-    per_page: '24',
+  const { data, error } = useSeatGeek("/events", {
+    type: "concert",
+    sort: "score.desc",
+    per_page: "24",
   });
 
   if (error) return <Error />;
@@ -54,12 +55,12 @@ const Events: React.FC = () => {
       <Flex justifyContent="center" alignItems="center" minHeight="50vh">
         <Spinner size="lg" />
       </Flex>
-    )
+    );
   }
 
   return (
     <>
-      <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Events' }]} />
+      <Breadcrumbs items={[{ label: "Home", to: "/" }, { label: "Events" }]} />
       <SimpleGrid spacing="6" m="6" minChildWidth="350px">
         {data.events?.map((event: EventProps) => (
           <EventItem key={event.id.toString()} event={event} />
@@ -70,19 +71,21 @@ const Events: React.FC = () => {
 };
 
 const EventItem: React.FC<EventItemProps> = ({ event }) => (
-  <LinkBox 
-    as={Card} 
+  <LinkBox
+    as={Card}
     variant="outline"
     overflow="hidden"
     bg="gray.50"
     borderColor="gray.200"
-    _hover={{ bg: 'gray.100' }}
+    _hover={{ bg: "gray.100" }}
   >
     <Image src={event.performers[0].image} />
     <CardBody>
-      <Stack spacing="2">
+      <Stack spacing="2" height="100%">
         <Heading size="md">
-          <LinkOverlay as={Link} to={`/events/${event.id}`}>{event.short_title}</LinkOverlay>
+          <LinkOverlay as={Link} to={`/events/${event.id}`}>
+            {event.short_title}
+          </LinkOverlay>
         </Heading>
         <Box>
           <Text fontSize="sm" color="gray.600">
@@ -92,9 +95,22 @@ const EventItem: React.FC<EventItemProps> = ({ event }) => (
             {event.venue.display_location}
           </Text>
         </Box>
-        <Text fontSize="sm" fontWeight="bold" color="gray.600" justifySelf={'end'}>
+        <Text
+          fontSize="sm"
+          fontWeight="bold"
+          color="gray.600"
+          justifySelf={"end"}
+        >
           {formatDateTime(event.datetime_utc)}
         </Text>
+
+        <Box margin="auto 0 0 0">
+          <FavoriteButton
+            id={event.id}
+            name={event.short_title}
+            type="events"
+          />
+        </Box>
       </Stack>
     </CardBody>
   </LinkBox>

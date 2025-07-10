@@ -19,9 +19,11 @@ import Error from "./Error";
 import { useSeatGeek } from "../utils/useSeatGeek";
 import { formatDateTime } from "../utils/formatDateTime";
 import { type Venue } from "./Events";
+import FavoriteButton from "./FavoriteButton";
 
 interface EventInfoProps {
   event: {
+    id: number;
     short_title: string;
     datetime_utc: Date;
     datetime_local: Date;
@@ -85,10 +87,11 @@ const EventInfo: React.FC<EventInfoProps> = ({ event }) => (
         </Tooltip>
       </Stat>
     </SimpleGrid>
-    <Flex>
+    <Flex gap="3">
       <Button as={"a"} href={event.url} minWidth="0">
         Buy Tickets
       </Button>
+      <FavoriteButton id={event.id} name={event.short_title} type="events" />
     </Flex>
   </Stack>
 );
