@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Drawer,
@@ -10,6 +11,9 @@ import {
   VStack,
   Text,
   Box,
+  Select,
+  Flex,
+  Heading,
 } from "@chakra-ui/react";
 import { CloseIcon } from "@chakra-ui/icons";
 import { useFavorites } from "../context/FavoritesContext";
@@ -21,9 +25,16 @@ interface Props {
 
 export const FavoritesDrawer: React.FC<Props> = ({ isOpen, onClose }) => {
   const { favorites, removeFavorite } = useFavorites();
+  const [selectedType, setSelectedType] = useState<"events" | "venues">(
+    "events"
+  );
+
+  const filteredFavorites = favorites.filter(
+    (item) => item.type === selectedType
+  );
 
   const renderFavorites = () =>
-    favorites.map((item) => (
+    filteredFavorites.map((item) => (
       <Box
         key={item.id}
         borderWidth="1px"
@@ -53,10 +64,27 @@ export const FavoritesDrawer: React.FC<Props> = ({ isOpen, onClose }) => {
       <DrawerOverlay />
       <DrawerContent>
         <DrawerCloseButton />
-        <DrawerHeader>Favorites</DrawerHeader>
+        <DrawerHeader>
+          Favorites
+          <Flex alignItems="center" justifyContent="end" gap={3} mt={5}>
+            <Heading color={"grey"} size="sm">
+              View
+            </Heading>
+            <Select
+              width="120px"
+              value={selectedType}
+              onChange={(e) =>
+                setSelectedType(e.target.value as "events" | "venues")
+              }
+            >
+              <option value="events">Events</option>
+              <option value="venues">Venues</option>
+            </Select>
+          </Flex>
+        </DrawerHeader>
         <DrawerBody>
-          {favorites.length === 0 ? (
-            <Text>No favorites yet.</Text>
+          {filteredFavorites.length === 0 ? (
+            <Text>No {selectedType} favorites yet.</Text>
           ) : (
             <VStack align="stretch" spacing={4}>
               {renderFavorites()}
