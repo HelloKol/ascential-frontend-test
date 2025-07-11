@@ -21,6 +21,7 @@ import Error from "./Error";
 import FavoriteButton from "./FavoriteButton";
 import { useSeatGeek } from "../utils/useSeatGeek";
 import { formatDateTime } from "../utils/formatDateTime";
+import Pagination from "./Pagination";
 
 export interface Performers {
   image: string;
@@ -47,6 +48,7 @@ const Events: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [eventType, setEventType] = useState("concert");
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+  const [page, setPage] = useState(1);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // debounce search query to avoid too many requests
@@ -60,6 +62,7 @@ const Events: React.FC = () => {
     q: debouncedSearch || "",
     sort: "score.desc",
     per_page: "24",
+    page: page.toString(),
   });
 
   // re-focus on search bar when component re-renders after fetching new data
@@ -68,6 +71,11 @@ const Events: React.FC = () => {
       inputRef.current.focus();
     }
   }, [data]);
+
+  // reset page state when searching/filtering data
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, eventType]);
 
   if (error) return <Error />;
 
@@ -110,11 +118,22 @@ const Events: React.FC = () => {
           </Text>
         </Flex>
       ) : (
-        <SimpleGrid spacing="6" m="6" minChildWidth="350px">
-          {data.events?.map((event: EventProps) => (
-            <EventItem key={event.id.toString()} event={event} />
-          ))}
-        </SimpleGrid>
+        <>
+          <SimpleGrid spacing="6" m="6" minChildWidth="350px">
+            {data.events?.map((event: EventProps) => (
+              <EventItem key={event.id.toString()} event={event} />
+            ))}
+          </SimpleGrid>
+
+          {data.meta && (
+            <Pagination
+              total={data.meta.total}
+              perPage={data.meta.per_page}
+              page={page}
+              setPage={setPage}
+            />
+          )}
+        </>
       )}
     </>
   );
