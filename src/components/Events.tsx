@@ -14,6 +14,7 @@ import {
   LinkOverlay,
   Input,
   Select,
+  Button,
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 import Breadcrumbs from "./Breadcrumbs";
@@ -47,6 +48,7 @@ const Events: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [eventType, setEventType] = useState("concert");
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+  const [page, setPage] = useState(1);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // debounce search query to avoid too many requests
@@ -60,6 +62,7 @@ const Events: React.FC = () => {
     q: debouncedSearch || "",
     sort: "score.desc",
     per_page: "24",
+    page: page.toString(),
   });
 
   // re-focus on search bar when component re-renders after fetching new data
@@ -68,6 +71,11 @@ const Events: React.FC = () => {
       inputRef.current.focus();
     }
   }, [data]);
+
+  // reset page state when searching/filtering data
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, eventType]);
 
   if (error) return <Error />;
 
@@ -78,6 +86,11 @@ const Events: React.FC = () => {
       </Flex>
     );
   }
+
+  // calculate total pages by dividing total by how many item to display per page
+  const totalPages = Math.ceil(data.meta.total / data.meta.per_page);
+  const isFirstPage = page === 1;
+  const isLastPage = page === totalPages;
 
   return (
     <>
@@ -110,11 +123,39 @@ const Events: React.FC = () => {
           </Text>
         </Flex>
       ) : (
-        <SimpleGrid spacing="6" m="6" minChildWidth="350px">
-          {data.events?.map((event: EventProps) => (
-            <EventItem key={event.id.toString()} event={event} />
-          ))}
-        </SimpleGrid>
+        <>
+          <SimpleGrid spacing="6" m="6" minChildWidth="350px">
+            {data.events?.map((event: EventProps) => (
+              <EventItem key={event.id.toString()} event={event} />
+            ))}
+          </SimpleGrid>
+
+          {data.meta && (
+            <Flex
+              justifyContent="center"
+              alignItems="center"
+              mt={6}
+              mb={6}
+              gap={4}
+            >
+              <Button
+                onClick={() => setPage((prev) => prev - 1)}
+                isDisabled={isFirstPage}
+              >
+                Previous
+              </Button>
+              <Text>
+                Page {page} of {totalPages}
+              </Text>
+              <Button
+                onClick={() => setPage((prev) => prev + 1)}
+                isDisabled={isLastPage}
+              >
+                Next
+              </Button>
+            </Flex>
+          )}
+        </>
       )}
     </>
   );
