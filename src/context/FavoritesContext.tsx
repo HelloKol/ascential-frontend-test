@@ -21,9 +21,10 @@ const FavoritesContext = createContext<FavoritesContextProps | undefined>(
 export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [favorites, setFavorites, isFavoritesLoading] = useLocalStorage<
-    FavoriteItem[]
-  >("favorites", []);
+  const [favorites, setFavorites] = useLocalStorage<FavoriteItem[]>(
+    "favorites",
+    []
+  );
 
   const addFavorite = (item: FavoriteItem) => {
     if (!isFavorite(item.id, item.type)) {
