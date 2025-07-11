@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   SimpleGrid,
   Flex,
@@ -12,6 +12,8 @@ import {
   Image,
   LinkBox,
   LinkOverlay,
+  Input,
+  Select,
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 import Breadcrumbs from "./Breadcrumbs";
@@ -42,11 +44,30 @@ interface EventItemProps {
 }
 
 const Events: React.FC = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [eventType, setEventType] = useState("concert");
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // debounce search query to avoid too many requests
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedSearch(searchQuery), 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
   const { data, error } = useSeatGeek("/events", {
-    type: "concert",
+    type: eventType,
+    q: debouncedSearch || "",
     sort: "score.desc",
     per_page: "24",
   });
+
+  // re-focus on search bar when component re-renders after fetching new data
+  useEffect(() => {
+    if (data && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [data]);
 
   if (error) return <Error />;
 
@@ -61,11 +82,40 @@ const Events: React.FC = () => {
   return (
     <>
       <Breadcrumbs items={[{ label: "Home", to: "/" }, { label: "Events" }]} />
-      <SimpleGrid spacing="6" m="6" minChildWidth="350px">
-        {data.events?.map((event: EventProps) => (
-          <EventItem key={event.id.toString()} event={event} />
-        ))}
-      </SimpleGrid>
+
+      <Flex gap={4} px={6} mt={4} flexWrap="wrap">
+        <Input
+          ref={inputRef}
+          placeholder="Search for events..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          width="300px"
+        />
+
+        <Select
+          width="200px"
+          value={eventType}
+          onChange={(e) => setEventType(e.target.value)}
+        >
+          <option value="concert">Concert</option>
+          <option value="sports">Sports</option>
+          <option value="theater">Theater</option>
+        </Select>
+      </Flex>
+
+      {data.events.length === 0 ? (
+        <Flex justifyContent="center" alignItems="center" margin="50px 0 0 0">
+          <Text fontSize="xl" color="gray.600">
+            No data found
+          </Text>
+        </Flex>
+      ) : (
+        <SimpleGrid spacing="6" m="6" minChildWidth="350px">
+          {data.events?.map((event: EventProps) => (
+            <EventItem key={event.id.toString()} event={event} />
+          ))}
+        </SimpleGrid>
+      )}
     </>
   );
 };
