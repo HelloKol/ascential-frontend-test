@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   SimpleGrid,
   Flex,
-  Spinner,
   Heading,
   Text,
   Box,
@@ -17,6 +16,7 @@ import Error from "./Error";
 import Breadcrumbs from "./Breadcrumbs";
 import FavoriteButton from "./FavoriteButton";
 import Pagination from "./Pagination";
+import SkeletonCard from "./SkeletonCard";
 
 export interface VenueProps {
   id: number;
@@ -62,14 +62,6 @@ const Venues: React.FC = () => {
 
   if (error) return <Error />;
 
-  if (!data) {
-    return (
-      <Flex justifyContent="center" alignItems="center" minHeight="50vh">
-        <Spinner size="lg" />
-      </Flex>
-    );
-  }
-
   return (
     <>
       <Breadcrumbs items={[{ label: "Home", to: "/" }, { label: "Venues" }]} />
@@ -84,7 +76,13 @@ const Venues: React.FC = () => {
         />
       </Flex>
 
-      {data.venues.length === 0 ? (
+      {!data ? (
+        <SimpleGrid spacing="6" m="6" minChildWidth="350px">
+          {[...Array(24)].map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </SimpleGrid>
+      ) : data.venues.length === 0 ? (
         <Flex justifyContent="center" alignItems="center" margin="50px 0 0 0">
           <Text fontSize="xl" color="gray.600">
             No venues found
