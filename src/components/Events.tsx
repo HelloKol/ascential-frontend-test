@@ -14,7 +14,6 @@ import {
   LinkOverlay,
   Input,
   Select,
-  Button,
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 import Breadcrumbs from "./Breadcrumbs";
@@ -22,6 +21,7 @@ import Error from "./Error";
 import FavoriteButton from "./FavoriteButton";
 import { useSeatGeek } from "../utils/useSeatGeek";
 import { formatDateTime } from "../utils/formatDateTime";
+import Pagination from "./Pagination";
 
 export interface Performers {
   image: string;
@@ -87,11 +87,6 @@ const Events: React.FC = () => {
     );
   }
 
-  // calculate total pages by dividing total by how many item to display per page
-  const totalPages = Math.ceil(data.meta.total / data.meta.per_page);
-  const isFirstPage = page === 1;
-  const isLastPage = page === totalPages;
-
   return (
     <>
       <Breadcrumbs items={[{ label: "Home", to: "/" }, { label: "Events" }]} />
@@ -131,29 +126,12 @@ const Events: React.FC = () => {
           </SimpleGrid>
 
           {data.meta && (
-            <Flex
-              justifyContent="center"
-              alignItems="center"
-              mt={6}
-              mb={6}
-              gap={4}
-            >
-              <Button
-                onClick={() => setPage((prev) => prev - 1)}
-                isDisabled={isFirstPage}
-              >
-                Previous
-              </Button>
-              <Text>
-                Page {page} of {totalPages}
-              </Text>
-              <Button
-                onClick={() => setPage((prev) => prev + 1)}
-                isDisabled={isLastPage}
-              >
-                Next
-              </Button>
-            </Flex>
+            <Pagination
+              total={data.meta.total}
+              perPage={data.meta.per_page}
+              page={page}
+              setPage={setPage}
+            />
           )}
         </>
       )}

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   SimpleGrid,
   Flex,
@@ -9,12 +9,14 @@ import {
   Badge,
   LinkBox,
   LinkOverlay,
+  Input,
 } from "@chakra-ui/react";
 import { Link as BrowserLink } from "react-router-dom";
 import { useSeatGeek } from "../utils/useSeatGeek";
 import Error from "./Error";
 import Breadcrumbs from "./Breadcrumbs";
 import FavoriteButton from "./FavoriteButton";
+import Pagination from "./Pagination";
 
 export interface VenueProps {
   id: number;
@@ -29,10 +31,34 @@ interface VenuItemProps {
 }
 
 const Venues: React.FC = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+  const [page, setPage] = useState(1);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // debounce search query to avoid too many requests
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedSearch(searchQuery), 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
   const { data, error } = useSeatGeek("/venues", {
+    q: debouncedSearch || "",
     sort: "score.desc",
     per_page: "24",
+    page: page.toString(),
   });
+
+  useEffect(() => {
+    if (data && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [data]);
+
+  // reset page state when searching/filtering data
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
 
   if (error) return <Error />;
 
@@ -47,11 +73,41 @@ const Venues: React.FC = () => {
   return (
     <>
       <Breadcrumbs items={[{ label: "Home", to: "/" }, { label: "Venues" }]} />
-      <SimpleGrid spacing="6" m="6" minChildWidth="350px">
-        {data.venues?.map((venue: VenueProps) => (
-          <VenueItem key={venue.id.toString()} venue={venue} />
-        ))}
-      </SimpleGrid>
+
+      <Flex px={6} mt={4}>
+        <Input
+          ref={inputRef}
+          placeholder="Search venues by name or city..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          width="300px"
+        />
+      </Flex>
+
+      {data.venues.length === 0 ? (
+        <Flex justifyContent="center" alignItems="center" margin="50px 0 0 0">
+          <Text fontSize="xl" color="gray.600">
+            No venues found
+          </Text>
+        </Flex>
+      ) : (
+        <>
+          <SimpleGrid spacing="6" m="6" minChildWidth="350px">
+            {data.venues.map((venue: VenueProps) => (
+              <VenueItem key={venue.id.toString()} venue={venue} />
+            ))}
+          </SimpleGrid>
+
+          {data.meta && (
+            <Pagination
+              total={data.meta.total}
+              perPage={data.meta.per_page}
+              page={page}
+              setPage={setPage}
+            />
+          )}
+        </>
+      )}
     </>
   );
 };
